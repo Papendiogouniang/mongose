@@ -1,18 +1,13 @@
-// server.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-
-// Connexion à MongoDB avec Mongoose
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-});
-
-// Import du modèle
 const Person = require('./models/person');
 
-// À partir d’ici, tu peux appeler les fonctions pour tester tes opérations...
+// Connexion
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// Créer une personne
 const createAndSavePerson = () => {
   const person = new Person({
     name: "pape ndiogou",
@@ -26,12 +21,12 @@ const createAndSavePerson = () => {
   });
 };
 
-// createAndSavePerson();
+// Créer plusieurs personnes
 const createManyPeople = () => {
   const arrayOfPeople = [
-    { name: "Mary", age: 30, favoriteFoods: ["Burger"] },
-    { name: "Steve", age: 22, favoriteFoods: ["Fries", "Burritos"] },
-    { name: "Alice", age: 27, favoriteFoods: ["Salad"] }
+    { name: "mai", age: 30, favoriteFoods: ["Burger"] },
+    { name: "pape", age: 22, favoriteFoods: ["Fries", "Burritos"] },
+    { name: "niang", age: 27, favoriteFoods: ["Salad"] }
   ];
 
   Person.create(arrayOfPeople, (err, people) => {
@@ -40,7 +35,8 @@ const createManyPeople = () => {
   });
 };
 
-// createManyPeople();
+// Trouver par nom
+// Recherche toutes les personnes avec un nom donné
 const findPeopleByName = (personName) => {
   Person.find({ name: personName }, (err, data) => {
     if (err) return console.error(err);
@@ -48,7 +44,8 @@ const findPeopleByName = (personName) => {
   });
 };
 
-// findPeopleByName("Mary");
+// Trouver une personne avec un aliment préféré
+// Recherche une personne dont un aliment préféré correspond à la valeur donnée
 const findOneByFood = (food) => {
   Person.findOne({ favoriteFoods: food }, (err, data) => {
     if (err) return console.error(err);
@@ -56,13 +53,17 @@ const findOneByFood = (food) => {
   });
 };
 
-// findOneByFood("Fries");
+// Trouver par ID
+// Recherche une personne par son identifiant unique
 const findPersonById = (personId) => {
   Person.findById(personId, (err, data) => {
     if (err) return console.error(err);
     console.log("✅ Person found by ID:", data);
   });
 };
+
+// Modifier une personne puis enregistrer
+// Ajoute "hamburger" aux aliments préférés d'une personne et sauvegarde
 const findEditThenSave = (personId) => {
   Person.findById(personId, (err, person) => {
     if (err) return console.error(err);
@@ -74,13 +75,13 @@ const findEditThenSave = (personId) => {
   });
 };
 
-
-// findEditThenSave("64f..."); // Remplace par un ID réel
+// Mettre à jour l’âge
+// Met à jour l'âge d'une personne trouvée par son nom à 20 ans
 const updateAge = (personName) => {
   Person.findOneAndUpdate(
     { name: personName },
     { age: 20 },
-    { new: true }, // retourne le document mis à jour
+    { new: true },
     (err, updated) => {
       if (err) return console.error(err);
       console.log("✅ Age updated:", updated);
@@ -88,7 +89,8 @@ const updateAge = (personName) => {
   );
 };
 
-// updateAge("Steve");
+// Supprimer par ID
+// Supprime une personne par son identifiant unique
 const deleteById = (personId) => {
   Person.findByIdAndRemove(personId, (err, removed) => {
     if (err) return console.error(err);
@@ -96,7 +98,8 @@ const deleteById = (personId) => {
   });
 };
 
-// deleteById("64f..."); // Remplace par un ID réel
+// Supprimer plusieurs
+// Supprime toutes les personnes portant le nom "Mary"
 const deleteManyMary = () => {
   Person.deleteMany({ name: "Mary" }, (err, result) => {
     if (err) return console.error(err);
@@ -104,23 +107,31 @@ const deleteManyMary = () => {
   });
 };
 
-// deleteManyMary();
+// Recherche complexe
+// Recherche les personnes qui aiment les "Burritos", trie par nom, limite à 2 résultats et exclut l'âge
 const chainSearch = () => {
-  Person.find({ favoriteFoods: "burritos" })
-    .sort("name") // trier par nom
-    .limit(2) // limiter à 2 documents
-    .select("-age") // ne pas afficher l'âge
+  Person.find({ favoriteFoods: "Burritos" })
+    .sort("name")
+    .limit(2)
+    .select("-age")
     .exec((err, data) => {
       if (err) return console.error(err);
       console.log("✅ Chained result:", data);
     });
 };
 
+// Appelle une fonction pour tester
+createAndSavePerson();
+// createManyPeople();
+// findPeopleByName("Mary");
+// findOneByFood("Fries");
+// findPersonById("64f..."); // Remplace par ID
+// findEditThenSave("64f..."); // Remplace par ID
+// updateAge("Steve");
+// deleteById("64f...");
+// deleteManyMary();
 // chainSearch();
 
-// chainSearch();
-
-// Export functions to avoid "declared but its value is never read" warnings
 module.exports = {
   createAndSavePerson,
   createManyPeople,
